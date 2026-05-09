@@ -9,9 +9,25 @@ import AdminLayout from '@/components/layout/AdminLayout'
 import StaffLayout from '@/components/layout/StaffLayout'
 import CustomerLayout from '@/components/layout/CustomerLayout'
 
+// Admin pages
 import AdminDashboard from '@/pages/admin/AdminDashboard'
+import ProjectsListPage from '@/pages/admin/ProjectsListPage'
+import CreateProjectPage from '@/pages/admin/CreateProjectPage'
+import AllBugsPage from '@/pages/admin/AllBugsPage'
+import UsersListPage from '@/pages/admin/UsersListPage'
+
+// Staff pages
 import StaffDashboard from '@/pages/staff/StaffDashboard'
+import MyAssignedBugsPage from '@/pages/staff/MyAssignedBugsPage'
+
+// Customer pages
 import CustomerDashboard from '@/pages/customer/CustomerDashboard'
+import MyBugsPage from '@/pages/customer/MyBugsPage'
+import CreateBugPage from '@/pages/customer/CreateBugPage'
+
+// Shared pages
+import BugDetailPage from '@/pages/shared/BugDetailPage'
+import NotificationsPage from '@/pages/shared/NotificationsPage'
 
 const ROLE_DEFAULT = { ADMIN: '/admin/dashboard', STAFF: '/staff/dashboard', CUSTOMER: '/customer/dashboard' }
 
@@ -41,14 +57,13 @@ export default function App() {
       >
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<AdminDashboard />} />
-        {/* Phase 3 pages wired here */}
-        <Route path="projects" element={<PlaceholderPage title="Projects" />} />
-        <Route path="projects/new" element={<PlaceholderPage title="New Project" />} />
-        <Route path="projects/:id" element={<PlaceholderPage title="Project Detail" />} />
-        <Route path="bugs" element={<PlaceholderPage title="All Bugs" />} />
-        <Route path="bugs/:id" element={<PlaceholderPage title="Bug Detail" />} />
-        <Route path="users" element={<PlaceholderPage title="Users" />} />
-        <Route path="notifications" element={<PlaceholderPage title="Notifications" />} />
+        <Route path="projects" element={<ProjectsListPage />} />
+        <Route path="projects/new" element={<CreateProjectPage />} />
+        <Route path="projects/:id" element={<ProjectDetailPage />} />
+        <Route path="bugs" element={<AllBugsPage />} />
+        <Route path="bugs/:id" element={<BugDetailPage rolePrefix="admin" />} />
+        <Route path="users" element={<UsersListPage />} />
+        <Route path="notifications" element={<NotificationsPage rolePrefix="admin" />} />
       </Route>
 
       {/* Staff — nested layout */}
@@ -62,9 +77,9 @@ export default function App() {
       >
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<StaffDashboard />} />
-        <Route path="bugs" element={<PlaceholderPage title="My Assigned Bugs" />} />
-        <Route path="bugs/:id" element={<PlaceholderPage title="Bug Detail" />} />
-        <Route path="notifications" element={<PlaceholderPage title="Notifications" />} />
+        <Route path="bugs" element={<MyAssignedBugsPage />} />
+        <Route path="bugs/:id" element={<BugDetailPage rolePrefix="staff" />} />
+        <Route path="notifications" element={<NotificationsPage rolePrefix="staff" />} />
       </Route>
 
       {/* Customer — nested layout */}
@@ -78,10 +93,10 @@ export default function App() {
       >
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<CustomerDashboard />} />
-        <Route path="bugs" element={<PlaceholderPage title="My Bugs" />} />
-        <Route path="bugs/new" element={<PlaceholderPage title="Report a Bug" />} />
-        <Route path="bugs/:id" element={<PlaceholderPage title="Bug Detail" />} />
-        <Route path="notifications" element={<PlaceholderPage title="Notifications" />} />
+        <Route path="bugs" element={<MyBugsPage />} />
+        <Route path="bugs/new" element={<CreateBugPage />} />
+        <Route path="bugs/:id" element={<BugDetailPage rolePrefix="customer" />} />
+        <Route path="notifications" element={<NotificationsPage rolePrefix="customer" />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
@@ -89,11 +104,11 @@ export default function App() {
   )
 }
 
-function PlaceholderPage({ title }) {
+function ProjectDetailPage() {
   return (
     <div className="flex flex-col gap-1">
-      <h1 className="text-2xl font-semibold">{title}</h1>
-      <p className="text-muted-foreground text-sm">Phase 3 — coming soon.</p>
+      <h1 className="text-2xl font-semibold">Project Detail</h1>
+      <p className="text-muted-foreground text-sm">View project bugs and details.</p>
     </div>
   )
 }
