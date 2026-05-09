@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nawras — Enterprise Workforce Platform</title>
+
+    <style>
+      /* ── Helvetica Neue — Latin (LTR) ────────────────────────────── */
+      @font-face {
+        font-family: "Helvetica Neue";
+        src: url("/fonts/HelveticaNeueLight.otf") format("opentype");
+        font-weight: 300;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Helvetica Neue";
+        src: url("/fonts/HelveticaNeueMedium.otf") format("opentype");
+        font-weight: 400 500;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Helvetica Neue";
+        src: url("/fonts/HelveticaNeueBold.otf") format("opentype");
+        font-weight: 600 700;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Helvetica Neue";
+        src: url("/fonts/HelveticaNeueHeavy.otf") format("opentype");
+        font-weight: 800;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Helvetica Neue";
+        src: url("/fonts/HelveticaNeueBlack.otf") format("opentype");
+        font-weight: 900;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      /* ── Helvetica Neue LT Arabic (RTL) ──────────────────────────── */
+      @font-face {
+        font-family: "Helvetica Neue Arabic";
+        src: url("/fonts/helvetica-neue-lt-arabic-45-light.ttf") format("truetype");
+        font-weight: 300;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Helvetica Neue Arabic";
+        src: url("/fonts/helvetica-neue-lt-arabic-55-roman.ttf") format("truetype");
+        font-weight: 400 500;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Helvetica Neue Arabic";
+        src: url("/fonts/helvetica-neue-lt-arabic-75-bold.ttf") format("truetype");
+        font-weight: 600 900;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      /* ── Global application ───────────────────────────────────────── */
+      :root {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      }
+      [dir="rtl"] {
+        font-family: "Helvetica Neue Arabic", "Helvetica Neue", Arial, sans-serif;
+      }
+      body {
+        margin: 0;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

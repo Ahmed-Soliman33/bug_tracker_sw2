@@ -1,0 +1,71 @@
+# this is the folder that configure docker compose
+
+version: '3.8'
+
+services:
+
+  mysql:
+    image: mysql:8
+    container_name: bugtracker-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  discovery-service:
+    build: ./discovery-service
+    container_name: discovery-service
+    ports:
+      - "8761:8761"
+    depends_on:
+      - mysql
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - discovery-service
+
+  user-auth-service:
+    build: ./user-service
+    container_name: user-auth-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - discovery-service
+      - mysql
+
+  bug-service:
+    build: ./bug-service
+    container_name: bug-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - discovery-service
+      - mysql
+
+  project-service:
+    build: ./project-service
+    container_name: project-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      - discovery-service
+      - mysql
+
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      - discovery-service
+      - mysql
+
+volumes:
+  mysql_data:

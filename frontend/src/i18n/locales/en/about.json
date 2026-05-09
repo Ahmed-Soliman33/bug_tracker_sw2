@@ -1,0 +1,53 @@
+{
+  "hero": {
+    "label": "ABOUT US",
+    "title_line1": "Empowering People,",
+    "title_line2": "Streamlining Processes",
+    "description": "Nawras was established as the technological engine bridging the gap between operational complexities and strategic ambitions. We believe that technology only gains value through its ability to simplify business; thus, we developed an intelligent ecosystem that transcends traditional models, granting leaders absolute visibility and control over every organizational facet. At Nawras, we don't just deliver tools; we engineer a \"Competitive Advantage\" for our clients in a market that demands nothing less than speed and precision.",
+    "cta_primary": "Explore Our Story",
+    "cta_secondary": "See Our Products",
+    "stat_label": "Active Users",
+    "stat_value": "10,000+",
+    "stat_growth": "+38% YoY",
+    "badge_title": "Our Story",
+    "badge_subtitle": "Nawras: New Horizons for Digital Transformation"
+  },
+  "values": {
+    "heading": "Nawras Core Values",
+    "items": [
+      {
+        "title": "Cognitive Proactivity",
+        "text": "We don't just react to changes; we anticipate them. We believe the true power of technology lies in its ability to foresee the future and prepare our clients before it unfolds."
+      },
+      {
+        "title": "Sophisticated Simplicity",
+        "text": "Our goal is to tame the most complex software processes and transform them into seamless user experiences. For us, excellence is making sophisticated technology feel effortless."
+      },
+      {
+        "title": "ROI Engineering",
+        "text": "At Nawras, technology is not an end but a means to profitability. We engineer our solutions to ensure every line of code translates into tangible financial value and operational efficiency."
+      },
+      {
+        "title": "Radical Real-time Transparency",
+        "text": "We provide leaders with the \"naked truth\" in real-time. Our value lies in breaking the barriers of ambiguity between data and decision-makers, creating a culture built on absolute data trust."
+      },
+      {
+        "title": "Adaptive Evolution",
+        "text": "Our systems are not static; they are digital organisms that grow and evolve alongside our clients' businesses. We are committed to delivering solutions with the agility to pivot as your ambitions change."
+      },
+      {
+        "title": "Benchmark Excellence",
+        "text": "We don't compare ourselves to competitors; we set the standards others follow. For us, excellence means always being the \"Benchmark\" for quality and technical innovation."
+      }
+    ]
+  },
+  "story": {
+    "label": "Our Story",
+    "heading": "Nawras: New Horizons for Digital Transformation",
+    "description": "Nawras was established as the technological engine bridging the gap between operational complexities and strategic ambitions. We believe that technology only gains value through its ability to simplify business; thus, we developed an intelligent ecosystem that transcends traditional models, granting leaders absolute visibility and control over every organizational facet. At Nawras, we don't just deliver tools; we engineer a \"Competitive Advantage\" for our clients in a market that demands nothing less than speed and precision.",
+    "journey_title": "Our Journey",
+    "journey_text": "Our story began with a simple observation: companies have immense potential but are shackled by outdated, complex systems. Therefore, we dedicated our efforts at Nawras to developing an integrated ecosystem of solutions (such as ERP, HCM, and Supply Chain) powered by AI, to be the perfect balance between technical power and a seamless user experience.",
+    "promise_title": "Our Promise",
+    "promise_text": "We promise our partners to always be their technical \"compass\"; innovating to simplify their business and evolving to increase their profits. At Nawras, our success is measured by the value we add to your business and the real ROI you feel at every step."
+  }
+}
