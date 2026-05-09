@@ -3,12 +3,31 @@ import { get, put } from "@/lib/api"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Bell, Check, Loader2 } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Bell, Check } from "lucide-react"
 import { formatDateTime } from "@/lib/bugUtils"
 import { useNavigate } from "react-router-dom"
-import { useAuthStore } from "@/store/useAuthStore"
+import { toast } from "sonner"
+import { motion } from "framer-motion"
 
-function NotificationItem({ notification, onRead, rolePrefix }) {
+const itemVariants = {
+  hidden: { opacity: 0, y: 6 },
+  visible: (i) => ({ opacity: 1, y: 0, transition: { delay: i * 0.04, duration: 0.2 } }),
+}
+
+function NotificationSkeleton() {
+  return (
+    <div className="flex items-start gap-3 p-4 rounded-lg border">
+      <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+      <div className="flex-1 space-y-2">
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-3 w-24" />
+      </div>
+    </div>
+  )
+}
+
+function NotificationItem({ notification, onRead, rolePrefix, index }) {
   const navigate = useNavigate()
   const isUnread = notification.status === "UNREAD"
 
@@ -20,7 +39,11 @@ function NotificationItem({ notification, onRead, rolePrefix }) {
   }
 
   return (
-    <div
+    <motion.div
+      custom={index}
+      variants={itemVariants}
+      initial="hidden"
+      animate="visible"
       onClick={handleClick}
       className={`flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${
         isUnread ? "bg-primary/5 border-primary/20 hover:bg-primary/10" : "hover:bg-muted/50"
@@ -47,7 +70,7 @@ function NotificationItem({ notification, onRead, rolePrefix }) {
       {isUnread && (
         <div className="h-2 w-2 shrink-0 rounded-full mt-2" style={{ background: "var(--brand-teal)" }} />
       )}
-    </div>
+    </motion.div>
   )
 }
 
@@ -57,6 +80,7 @@ export default function NotificationsPage({ rolePrefix }) {
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["notifications"],
     queryFn: () => get("/notifications/my-notifications"),
+    refetchOnWindowFocus: true,
     select: (res) => {
       const list = Array.isArray(res) ? res : res?.data ?? []
       return [...list].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
@@ -65,7 +89,21 @@ export default function NotificationsPage({ rolePrefix }) {
 
   const readMut = useMutation({
     mutationFn: (id) => put(`/notifications/read/${id}`),
-    onSuccess: () => {
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ["notifications"] })
+      const prev = qc.getQueryData(["notifications"])
+      qc.setQueryData(["notifications"], (old) => {
+        if (!old) return old
+        const list = Array.isArray(old) ? old : old?.data ?? []
+        return list.map((n) => n.id === id ? { ...n, status: "READ" } : n)
+      })
+      return { prev }
+    },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["notifications"], ctx.prev)
+      toast.error("Failed to mark notification as read.")
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["notifications"] })
     },
   })
@@ -73,18 +111,11 @@ export default function NotificationsPage({ rolePrefix }) {
   function markAllRead() {
     const unread = notifications.filter((n) => n.status === "UNREAD")
     unread.forEach((n) => readMut.mutate(n.id))
+    if (unread.length > 0) toast.success(`Marked ${unread.length} notifications as read.`)
   }
 
   const unread = notifications.filter((n) => n.status === "UNREAD")
   const read   = notifications.filter((n) => n.status === "READ")
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-60">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    )
-  }
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -92,10 +123,10 @@ export default function NotificationsPage({ rolePrefix }) {
         <div>
           <h1 className="text-2xl font-semibold">Notifications</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {unread.length > 0 ? `${unread.length} unread` : "All caught up"}
+            {isLoading ? "Loading…" : unread.length > 0 ? `${unread.length} unread` : "All caught up"}
           </p>
         </div>
-        {unread.length > 0 && (
+        {!isLoading && unread.length > 0 && (
           <button
             onClick={markAllRead}
             disabled={readMut.isPending}
@@ -111,7 +142,7 @@ export default function NotificationsPage({ rolePrefix }) {
         <TabsList>
           <TabsTrigger value="unread">
             Unread
-            {unread.length > 0 && (
+            {!isLoading && unread.length > 0 && (
               <Badge
                 className="ml-2 h-4.5 min-w-4.5 px-1 text-[10px] rounded-full"
                 style={{ background: "var(--brand-teal)", color: "#fff", border: "none" }}
@@ -125,7 +156,9 @@ export default function NotificationsPage({ rolePrefix }) {
         </TabsList>
 
         <TabsContent value="unread" className="space-y-2 mt-4">
-          {unread.length === 0 ? (
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => <NotificationSkeleton key={i} />)
+          ) : unread.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <Bell className="h-8 w-8 mx-auto text-muted-foreground/40 mb-3" />
@@ -133,28 +166,32 @@ export default function NotificationsPage({ rolePrefix }) {
               </CardContent>
             </Card>
           ) : (
-            unread.map((n) => (
-              <NotificationItem key={n.id} notification={n} onRead={(id) => readMut.mutate(id)} rolePrefix={rolePrefix} />
+            unread.map((n, i) => (
+              <NotificationItem key={n.id} notification={n} onRead={(id) => readMut.mutate(id)} rolePrefix={rolePrefix} index={i} />
             ))
           )}
         </TabsContent>
 
         <TabsContent value="read" className="space-y-2 mt-4">
-          {read.length === 0 ? (
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => <NotificationSkeleton key={i} />)
+          ) : read.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <p className="text-sm text-muted-foreground">No read notifications.</p>
               </CardContent>
             </Card>
           ) : (
-            read.map((n) => (
-              <NotificationItem key={n.id} notification={n} onRead={(id) => readMut.mutate(id)} rolePrefix={rolePrefix} />
+            read.map((n, i) => (
+              <NotificationItem key={n.id} notification={n} onRead={(id) => readMut.mutate(id)} rolePrefix={rolePrefix} index={i} />
             ))
           )}
         </TabsContent>
 
         <TabsContent value="all" className="space-y-2 mt-4">
-          {notifications.length === 0 ? (
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => <NotificationSkeleton key={i} />)
+          ) : notifications.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <Bell className="h-8 w-8 mx-auto text-muted-foreground/40 mb-3" />
@@ -162,8 +199,8 @@ export default function NotificationsPage({ rolePrefix }) {
               </CardContent>
             </Card>
           ) : (
-            notifications.map((n) => (
-              <NotificationItem key={n.id} notification={n} onRead={(id) => readMut.mutate(id)} rolePrefix={rolePrefix} />
+            notifications.map((n, i) => (
+              <NotificationItem key={n.id} notification={n} onRead={(id) => readMut.mutate(id)} rolePrefix={rolePrefix} index={i} />
             ))
           )}
         </TabsContent>

@@ -13,6 +13,8 @@ import { Separator } from "@/components/ui/separator"
 import { statusBadgeClass, priorityBadgeClass, formatDateTime } from "@/lib/bugUtils"
 import { ArrowLeft, Loader2, UserCheck, CheckCircle2, MessageSquare, Send, Bug, FolderKanban } from "lucide-react"
 import { useState } from "react"
+import { toast } from "sonner"
+import { Skeleton } from "@/components/ui/skeleton"
 
 function DetailRow({ label, children }) {
   return (
@@ -58,8 +60,13 @@ export default function BugDetailPage({ rolePrefix }) {
       qc.invalidateQueries({ queryKey: ["bugs"] })
       setStaffId("")
       setActionError("")
+      toast.success("Bug assigned successfully.")
     },
-    onError: (err) => setActionError(err.data?.message || "Failed to assign bug."),
+    onError: (err) => {
+      const msg = err.data?.message || "Failed to assign bug."
+      setActionError(msg)
+      toast.error(msg)
+    },
   })
 
   const solveMut = useMutation({
@@ -68,8 +75,13 @@ export default function BugDetailPage({ rolePrefix }) {
       qc.invalidateQueries({ queryKey: ["bug", id] })
       qc.invalidateQueries({ queryKey: ["bugs"] })
       setActionError("")
+      toast.success("Bug marked as solved.")
     },
-    onError: (err) => setActionError(err.data?.message || "Failed to mark as solved."),
+    onError: (err) => {
+      const msg = err.data?.message || "Failed to mark as solved."
+      setActionError(msg)
+      toast.error(msg)
+    },
   })
 
   const { data: projectData } = useQuery({
@@ -84,8 +96,13 @@ export default function BugDetailPage({ rolePrefix }) {
     onSuccess: () => {
       setComment("")
       setActionError("")
+      toast.success("Comment sent to admin.")
     },
-    onError: (err) => setActionError(err.data?.message || "Failed to send comment."),
+    onError: (err) => {
+      const msg = err.data?.message || "Failed to send comment."
+      setActionError(msg)
+      toast.error(msg)
+    },
   })
 
   const adminMsgMut = useMutation({
@@ -93,14 +110,38 @@ export default function BugDetailPage({ rolePrefix }) {
     onSuccess: () => {
       setAdminMsg("")
       setActionError("")
+      toast.success("Message sent to customer.")
     },
-    onError: (err) => setActionError(err.data?.message || "Failed to send message."),
+    onError: (err) => {
+      const msg = err.data?.message || "Failed to send message."
+      setActionError(msg)
+      toast.error(msg)
+    },
   })
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-60">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <div className="space-y-6 max-w-4xl">
+        <Skeleton className="h-5 w-16" />
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-2">
+            <Skeleton className="h-7 w-64" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-6 w-20 rounded-full" />
+            <Skeleton className="h-6 w-20 rounded-full" />
+          </div>
+        </div>
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-4">
+            <Skeleton className="h-36 w-full rounded-lg" />
+            <Skeleton className="h-28 w-full rounded-lg" />
+          </div>
+          <div className="space-y-4">
+            <Skeleton className="h-48 w-full rounded-lg" />
+          </div>
+        </div>
       </div>
     )
   }

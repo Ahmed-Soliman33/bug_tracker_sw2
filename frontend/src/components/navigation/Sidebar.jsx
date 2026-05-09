@@ -32,7 +32,7 @@ export default function Sidebar({ navItems }) {
   }
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r bg-sidebar">
+    <aside className="hidden lg:flex fixed inset-y-0 left-0 z-30 w-60 flex-col border-r bg-sidebar">
       {/* Logo */}
       <div className="flex h-16 items-center gap-2.5 px-5 border-b border-sidebar-border">
         <div

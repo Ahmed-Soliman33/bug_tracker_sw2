@@ -23,8 +23,8 @@ export default function AdminLayout() {
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar navItems={NAV_ITEMS} />
-      <div className="flex flex-1 flex-col pl-60">
-        <TopNavbar notificationsPath="/admin/notifications" />
+      <div className="flex flex-1 flex-col lg:pl-60">
+        <TopNavbar notificationsPath="/admin/notifications" navItems={NAV_ITEMS} />
         <main className="flex-1 overflow-y-auto">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
@@ -33,7 +33,7 @@ export default function AdminLayout() {
               initial="initial"
               animate="animate"
               exit="exit"
-              className="p-6"
+              className="p-4 sm:p-6"
             >
               <Outlet />
             </motion.div>

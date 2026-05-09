@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Loader2, FolderKanban } from "lucide-react"
 import { useState } from "react"
+import { toast } from "sonner"
 
 const schema = z.object({
   projectName:  z.string().min(2, "Name must be at least 2 characters"),
@@ -32,10 +33,13 @@ export default function CreateProjectPage() {
     mutationFn: (data) => post("/projects/insert", { ...data, adminId: user.id }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["projects"] })
+      toast.success("Project created successfully.")
       navigate("/admin/projects", { replace: true })
     },
     onError: (err) => {
-      setServerError(err.data?.message || "Failed to create project. Please try again.")
+      const msg = err.data?.message || "Failed to create project. Please try again."
+      setServerError(msg)
+      toast.error(msg)
     },
   })
 

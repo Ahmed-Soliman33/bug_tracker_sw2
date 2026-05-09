@@ -6,9 +6,16 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Loader2, Bug, Search } from "lucide-react"
+import { TableSkeleton } from "@/components/ui/stat-card-skeleton"
+import { Bug, Search } from "lucide-react"
 import { statusBadgeClass, priorityBadgeClass } from "@/lib/bugUtils"
 import { useState } from "react"
+import { motion } from "framer-motion"
+
+const rowVariants = {
+  hidden: { opacity: 0, y: 6 },
+  visible: (i) => ({ opacity: 1, y: 0, transition: { delay: i * 0.03, duration: 0.2 } }),
+}
 
 export default function MyAssignedBugsPage() {
   const user = useAuthStore((s) => s.user)
@@ -27,19 +34,13 @@ export default function MyAssignedBugsPage() {
     !search || b.title.toLowerCase().includes(search.toLowerCase()) || b.projectName?.toLowerCase().includes(search.toLowerCase())
   )
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-60">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">My Assigned Bugs</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">{bugs.length} bug{bugs.length !== 1 ? "s" : ""} assigned to you</p>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          {isLoading ? "Loading…" : `${bugs.length} bug${bugs.length !== 1 ? "s" : ""} assigned to you`}
+        </p>
       </div>
 
       <div className="relative max-w-sm">
@@ -52,7 +53,9 @@ export default function MyAssignedBugsPage() {
         />
       </div>
 
-      {filtered.length === 0 ? (
+      {isLoading ? (
+        <TableSkeleton rows={5} cols={4} />
+      ) : filtered.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center">
             <Bug className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
@@ -73,13 +76,17 @@ export default function MyAssignedBugsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((bug) => (
-                <TableRow key={bug.id}>
+              {filtered.map((bug, i) => (
+                <motion.tr
+                  key={bug.id}
+                  custom={i}
+                  variants={rowVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="border-b last:border-0 hover:bg-muted/30 transition-colors"
+                >
                   <TableCell>
-                    <Link
-                      to={`/staff/bugs/${bug.id}`}
-                      className="font-medium hover:text-primary transition-colors"
-                    >
+                    <Link to={`/staff/bugs/${bug.id}`} className="font-medium hover:text-primary transition-colors">
                       {bug.title}
                     </Link>
                     {bug.description && (
@@ -97,7 +104,7 @@ export default function MyAssignedBugsPage() {
                       {bug.status}
                     </Badge>
                   </TableCell>
-                </TableRow>
+                </motion.tr>
               ))}
             </TableBody>
           </Table>

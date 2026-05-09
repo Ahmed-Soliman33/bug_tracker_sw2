@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, Link } from "react-router-dom"
-import { Bell, LogOut, User } from "lucide-react"
+import { Bell, LogOut } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { get } from "@/lib/api"
 import { useAuthStore } from "@/store/useAuthStore"
@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import MobileSidebar from "@/components/navigation/MobileSidebar"
 
 const SEGMENT_LABELS = {
   admin: "Admin",
@@ -87,7 +88,7 @@ function NotificationBell({ notificationsPath }) {
   )
 }
 
-export default function TopNavbar({ notificationsPath }) {
+export default function TopNavbar({ notificationsPath, navItems = [] }) {
   const user = useAuthStore((s) => s.user)
   const clearUser = useAuthStore((s) => s.clearUser)
   const navigate = useNavigate()
@@ -99,7 +100,10 @@ export default function TopNavbar({ notificationsPath }) {
   }
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center border-b bg-background/95 backdrop-blur-sm px-6 gap-4">
+    <header className="sticky top-0 z-20 flex h-16 items-center border-b bg-background/95 backdrop-blur-sm px-4 sm:px-6 gap-3">
+      {/* Mobile hamburger */}
+      <MobileSidebar navItems={navItems} />
+
       {/* Breadcrumb */}
       <Breadcrumb className="flex-1">
         <BreadcrumbList>

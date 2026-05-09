@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader2, Bug } from "lucide-react"
 import { useState } from "react"
+import { toast } from "sonner"
 
 const schema = z.object({
   title:       z.string().min(3, "Title must be at least 3 characters"),
@@ -46,10 +47,13 @@ export default function CreateBugPage() {
     mutationFn: (data) => post("/bugs/insert", data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bugs"] })
+      toast.success("Bug reported successfully.")
       navigate("/customer/bugs", { replace: true })
     },
     onError: (err) => {
-      setServerError(err.data?.message || "Failed to report bug. Please try again.")
+      const msg = err.data?.message || "Failed to report bug. Please try again."
+      setServerError(msg)
+      toast.error(msg)
     },
   })
 

@@ -4,10 +4,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Loader2, Users, Trash2, Search } from "lucide-react"
+import { TableSkeleton } from "@/components/ui/stat-card-skeleton"
+import { Users, Trash2, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { useAuthStore } from "@/store/useAuthStore"
+import { toast } from "sonner"
+import { motion } from "framer-motion"
 
 function roleBadge(role) {
   switch (role) {
@@ -20,6 +23,11 @@ function roleBadge(role) {
 
 function initials(name = "") {
   return name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
+}
+
+const rowVariants = {
+  hidden: { opacity: 0, y: 5 },
+  visible: (i) => ({ opacity: 1, y: 0, transition: { delay: i * 0.03, duration: 0.2 } }),
 }
 
 export default function UsersListPage() {
@@ -36,7 +44,11 @@ export default function UsersListPage() {
 
   const deleteMut = useMutation({
     mutationFn: (id) => del(`/users/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["users"] })
+      toast.success("User deleted successfully.")
+    },
+    onError: () => toast.error("Failed to delete user."),
   })
 
   const filtered = users.filter((u) => {
@@ -51,19 +63,13 @@ export default function UsersListPage() {
     deleteMut.mutate(user.id)
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-60">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Users</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">{users.length} registered user{users.length !== 1 ? "s" : ""}</p>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          {isLoading ? "Loading…" : `${users.length} registered user${users.length !== 1 ? "s" : ""}`}
+        </p>
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -93,7 +99,9 @@ export default function UsersListPage() {
         </div>
       </div>
 
-      {filtered.length === 0 ? (
+      {isLoading ? (
+        <TableSkeleton rows={6} cols={6} />
+      ) : filtered.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center">
             <Users className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
@@ -114,8 +122,15 @@ export default function UsersListPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((u) => (
-                <TableRow key={u.id}>
+              {filtered.map((u, i) => (
+                <motion.tr
+                  key={u.id}
+                  custom={i}
+                  variants={rowVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="border-b last:border-0 hover:bg-muted/30 transition-colors"
+                >
                   <TableCell>
                     <div className="flex items-center gap-2.5">
                       <Avatar className="h-8 w-8">
@@ -132,9 +147,7 @@ export default function UsersListPage() {
                     <Badge className={`text-[11px] px-2 py-0.5 rounded-full border ${roleBadge(u.role)}`}>
                       {u.role}
                     </Badge>
-                    {u.job && (
-                      <span className="text-[11px] text-muted-foreground ml-1.5">{u.job}</span>
-                    )}
+                    {u.job && <span className="text-[11px] text-muted-foreground ml-1.5">{u.job}</span>}
                   </TableCell>
                   <TableCell><span className="text-sm text-muted-foreground">{u.phoneNumber || "—"}</span></TableCell>
                   <TableCell><span className="text-sm text-muted-foreground">{u.age || "—"}</span></TableCell>
@@ -150,7 +163,7 @@ export default function UsersListPage() {
                       </button>
                     )}
                   </TableCell>
-                </TableRow>
+                </motion.tr>
               ))}
             </TableBody>
           </Table>
