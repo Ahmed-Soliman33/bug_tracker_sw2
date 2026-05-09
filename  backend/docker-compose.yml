@@ -16,7 +16,7 @@ services:
       - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   discovery-service:
-    build: ./discovery-service
+    build: ./Discovery-Service
     container_name: discovery-service
     ports:
       - "8761:8761"
@@ -24,7 +24,7 @@ services:
       - mysql
 
   api-gateway:
-    build: ./api-gateway
+    build: ./API-GateWay
     container_name: api-gateway
     ports:
       - "8080:8080"
@@ -32,7 +32,7 @@ services:
       - discovery-service
 
   user-auth-service:
-    build: ./user-service
+    build: ./User-Auth-Service
     container_name: user-auth-service
     ports:
       - "8081:8081"
@@ -41,7 +41,7 @@ services:
       - mysql
 
   bug-service:
-    build: ./bug-service
+    build: ./Bug-Service
     container_name: bug-service
     ports:
       - "8082:8082"
@@ -50,7 +50,7 @@ services:
       - mysql
 
   project-service:
-    build: ./project-service
+    build: ./Project-Service
     container_name: project-service
     ports:
       - "8083:8083"
@@ -59,7 +59,7 @@ services:
       - mysql
 
   notification-service:
-    build: ./notification-service
+    build: ./Notification-Service
     container_name: notification-service
     ports:
       - "8084:8084"
