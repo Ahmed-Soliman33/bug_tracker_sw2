@@ -29,7 +29,7 @@ public class ProjectServiceImpl implements ProjectService {
     // getting the project by name
     @Override
     public Project getProjectIdByName(String name) {
-        return projectRepository.findByName(name).orElseThrow(() -> new ProjectNotFoundException("Project not found"));
+        return projectRepository.findByProjectName(name).orElseThrow(() -> new ProjectNotFoundException("Project not found"));
     }
     @Override
     public Project getProjectById(Long id){

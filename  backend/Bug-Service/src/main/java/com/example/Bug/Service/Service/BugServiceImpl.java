@@ -2,6 +2,7 @@ package com.example.Bug.Service.Service;
 
 import com.example.Bug.Service.Client.NotificationClient;
 import com.example.Bug.Service.Client.ProjectClient;
+import com.example.Bug.Service.DTO.ProjectDTO;
 import com.example.Bug.Service.Entity.BugPriority;
 import com.example.Bug.Service.Entity.BugStatus;
 import com.example.Bug.Service.Entity.Role;
@@ -32,36 +33,32 @@ public class BugServiceImpl implements BugService{
     @Override
     public Bug createBug(String title, String description, BugPriority priority, String projectName, Long customerId){
 
-        Object project = projectClient.getProjectIdByName(projectName);
+        ProjectDTO project = projectClient.getProjectByName(projectName);
 
         if (project == null) {
             throw new ProjectNotFoundException("Project not found");
         }
 
-
         Bug bug = new Bug();
-
         bug.setTitle(title);
         bug.setDescription(description);
         bug.setPriority(priority);
-        bug.setProjectName(projectName);
+        bug.setProjectName(project.getProjectName());
         bug.setCustomerId(customerId);
         bug.setStatus(BugStatus.OPEN);
         bug.setAssignedStaffId(null);
 
         Bug savedBug = bugRepository.save(bug);
-        // getting the adminId from the projec
-        Long projectId = projectClient.getProjectIdByName(projectName);
-        Long adminId = projectClient.getProjectAdmin(projectId);
+
+        Long adminId = projectClient.getProjectAdmin(project.getProjectId());
         notificationClient.sendNotification(
                 customerId,
                 adminId,
                 savedBug.getId(),
                 "New bug created"
         );
-        // we will create bug topic in Kafka named <<create-bug-topic>>
-        return savedBug;
 
+        return savedBug;
     }
     @Override
     // admin assign bug to staff
@@ -72,19 +69,19 @@ public class BugServiceImpl implements BugService{
         Bug bug = bugRepository.findById(bugId)
                 .orElseThrow(() -> new BugNotFoundException("Bug not found"));
 
+        if (bug.getStatus() != BugStatus.OPEN) {
+            throw new RuntimeException("Bug is already assigned or closed");
+        }
+
         bug.setAssignedStaffId(staffId);
         bug.setStatus(BugStatus.ASSIGNED);
 
-        if (bug.getStatus() != BugStatus.OPEN) {
-            throw new RuntimeException("Bug Already Assigned");
-        }
         Bug updatedBug = bugRepository.save(bug);
 
         notificationClient.sendNotification(adminId,
                 staffId,
                 bugId,
-                "this Bug assigned to you");
-        // we will create bug topic in Kafka named <<assign-bug-topic>>
+                "This bug has been assigned to you");
 
         return updatedBug;
     }

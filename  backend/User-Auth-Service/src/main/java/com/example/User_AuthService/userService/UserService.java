@@ -10,7 +10,7 @@ import java.util.List;
 public interface UserService {
     User createUser(User user);
     User register(User user); // register invoke createUser so ADMIN create the user
-    Object login(LoginRequest request);
+    User login(LoginRequest request);
    List<User> getAllUsers(Role role);
    User getUserById(Long requestUserId, Long targetUserId, Role role);
     User updateUser(Long requestUserId, Long targetUserId, User user, Role role);

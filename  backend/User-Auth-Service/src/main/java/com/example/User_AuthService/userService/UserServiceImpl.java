@@ -80,18 +80,16 @@ public class UserServiceImpl implements UserService{
     @Override
     public User login(LoginRequest request) {
 
-        String email = request.getEmail();
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        String hashedPassword = encoder.encode(request.getPassword());
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new NoSuchUserExistsException("User Not Found"));
 
-        if (!user.getPassword().equals(hashedPassword)) {
+        if (!encoder.matches(request.getPassword(), user.getPassword())) {
             throw new InvalidDataException("Invalid password");
         }
 
-        return user;  // take this data after login and store them in session frontend
+        return user;
     }
     @Override
     // we search to user using id

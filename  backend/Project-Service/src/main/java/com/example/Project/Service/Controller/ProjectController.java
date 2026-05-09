@@ -13,18 +13,19 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/projects")
-// send with project details your role
 public class ProjectController {
     @Autowired
     private ProjectService projectService;
 
-    @GetMapping("/{projectName}")
-    public Project getProjectIdByName(@PathVariable String name) {
-        return projectService.getProjectIdByName(name);
+    // GET /projects/name/{projectName}
+    @GetMapping("/name/{projectName}")
+    public Project getProjectByName(@PathVariable String projectName) {
+        return projectService.getProjectIdByName(projectName);
     }
 
+    // GET /projects/{projectId}
     @GetMapping("/{projectId}")
-    public Project getProjectById(@PathVariable Long projectId){
+    public Project getProjectById(@PathVariable Long projectId) {
         return projectService.getProjectById(projectId);
     }
 
@@ -33,9 +34,10 @@ public class ProjectController {
         return projectService.getAllProjects();
     }
 
+    // GET /projects/{projectId}/admin
     @GetMapping("/{projectId}/admin")
-    public Long getProjectAdmin(@PathVariable String projectName) {
-        Project project = projectService.getProjectIdByName(projectName);
+    public Long getProjectAdmin(@PathVariable Long projectId) {
+        Project project = projectService.getProjectById(projectId);
         return project.getAdminId();
     }
 
@@ -48,7 +50,7 @@ public class ProjectController {
 
     @PutMapping("/{id}")
     public Project updateProject(@PathVariable Long id, @RequestBody Project project) {
-        return projectService.updateProject(id,project);
+        return projectService.updateProject(id, project);
     }
 
     @DeleteMapping("/{id}")

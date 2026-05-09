@@ -1,16 +1,16 @@
 package com.example.Bug.Service.Client;
 
+import com.example.Bug.Service.DTO.ProjectDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name = "PROJECT-SERVICE", url = "http://PROJECT-SERVICE:8083")
-
+@FeignClient(name = "PROJECT-SERVICE")
 public interface ProjectClient {
 
-    @GetMapping("/projects/{id}")
-    Long getProjectIdByName(@PathVariable String name);
-    // getting the ID to Admin
-    @GetMapping("/projects/{id}/admin")
-    Long getProjectAdmin(@PathVariable Long id);
+    @GetMapping("/projects/name/{projectName}")
+    ProjectDTO getProjectByName(@PathVariable String projectName);
+
+    @GetMapping("/projects/{projectId}/admin")
+    Long getProjectAdmin(@PathVariable Long projectId);
 }

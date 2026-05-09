@@ -23,9 +23,9 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    // take the email and password
-    public void login(@RequestBody LoginRequest request) {
-        userService.login(request);
+    public ResponseEntity<ApiResponse<User>> login(@RequestBody LoginRequest request) {
+        User user = userService.login(request);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Login successful", user));
     }
 
 }

@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CreateBugRequest {
     @NotBlank(message = "Title is required")
-
     private String title;
     private String description;
     private BugPriority priority;
-    private Long ProjectId;
+    @NotBlank(message = "Project name is required")
+    private String projectName;
 }

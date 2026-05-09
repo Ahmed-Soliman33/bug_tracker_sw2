@@ -47,64 +47,55 @@ All services share:
 - **MySQL 8** — persistence
 - **Spring Security + BCrypt** — password hashing
 - **Docker & Docker Compose** — containerization
-- **Maven** — build tool
+- **Maven** — build tool (runs inside Docker — no local Maven needed)
 
 ---
 
 ## Running the Project
 
-### With Docker (recommended)
+### Prerequisites
+
+**Docker Desktop** — nothing else required.
+
+### Start
 
 ```bash
 cd " backend"
-
-# Build and start everything
 docker-compose up --build
-
-# Watch services register at:
-# http://localhost:8761
-
-# Stop
-docker-compose down
-
-# Stop and wipe the database
-docker-compose down -v
 ```
 
-Wait until all 5 services appear on the Eureka dashboard before making API calls.
+First build takes ~8 minutes (downloads Maven dependencies inside Docker). Every subsequent start takes ~1 minute.
 
-### Without Docker (local dev)
+### Verify everything is up
 
-Start services **in this order** — Discovery-Service must be first:
-
+1. Open **http://localhost:8761** — Eureka dashboard
+2. Wait until all 5 services appear: `USER-SERVICE`, `BUG-SERVICE`, `PROJECT-SERVICE`, `NOTIFICATION-SERVICE`, `API-GATEWAY`
+3. Smoke test:
 ```bash
-# 1. Discovery-Service
-cd Discovery-Service && mvn spring-boot:run
-
-# 2. Any order after that
-cd User-Auth-Service && mvn spring-boot:run
-cd Bug-Service       && mvn spring-boot:run
-cd Project-Service   && mvn spring-boot:run
-cd Notification-Service && mvn spring-boot:run
-cd API-GateWay       && mvn spring-boot:run
+curl http://localhost:8080/projects
 ```
 
-### Run tests
+### Stop
 
 ```bash
-cd <ServiceDirectory>
-mvn test                          # all tests in the service
-mvn test -Dtest=ClassName         # single test class
+docker-compose down        # keeps the database
+docker-compose down -v     # wipes the database too
+```
+
+### Rebuild a single service after code changes
+
+```bash
+docker-compose up --build user-auth-service
 ```
 
 ---
 
 ## Authentication Model
 
-There is **no JWT**. After login, the frontend stores the user's `id` and `role` and passes them as plain HTTP headers on every request:
+There is **no JWT**. After login, store `data.id` and `data.role` from the response and send them as plain HTTP headers on every subsequent request:
 
 ```
-userId: 1
+userId: 4
 role: ADMIN
 ```
 
@@ -112,297 +103,100 @@ Roles: `ADMIN` `STAFF` `CUSTOMER`
 
 ---
 
-## API Reference
+## Full Flow — curl One-Liners
 
-**Base URL:** `http://localhost:8080`
+All commands are single lines, safe to paste directly into your terminal.
 
-All requests go through the gateway. Headers are passed straight through to each service.
+### 1. Register users
 
----
+```bash
+# Register ADMIN (id → 4)
+curl -s -X POST http://localhost:8080/users/accounts/register -H "Content-Type: application/json" -d '{"fullName":"Ahmed Admin","phoneNumber":"01012345678","age":30,"email":"ahmed.admin@bugtracker.com","password":"admin1234","role":"ADMIN"}'
 
-### Auth
+# Register STAFF (id → 5)
+curl -s -X POST http://localhost:8080/users/accounts/register -H "Content-Type: application/json" -d '{"fullName":"Sara Staff","phoneNumber":"01098765432","age":26,"email":"sara.staff@bugtracker.com","password":"staff1234","role":"STAFF","job":"BACKEND"}'
 
-#### Register
-```http
-POST /users/accounts/register
-Content-Type: application/json
-```
-```json
-{
-  "fullName": "Ahmed Soliman",
-  "phoneNumber": "01012345678",
-  "age": 25,
-  "email": "ahmed@example.com",
-  "password": "secret123",
-  "role": "ADMIN"
-}
-```
-> Role values: `ADMIN` `STAFF` `CUSTOMER`
-> Staff only — add `"job"` field: `FRONTEND` `BACKEND` `FULLSTACK` `QA` `DEVOPS` `MOBILE`
-
-Response:
-```json
-{
-  "success": true,
-  "message": "User Registered Successfully",
-  "data": { "id": 1, "fullName": "Ahmed Soliman", "role": "ADMIN", ... }
-}
+# Register CUSTOMER (id → 6)
+curl -s -X POST http://localhost:8080/users/accounts/register -H "Content-Type: application/json" -d '{"fullName":"Omar Customer","phoneNumber":"01011112233","age":24,"email":"omar.customer@bugtracker.com","password":"customer1234","role":"CUSTOMER"}'
 ```
 
-#### Login
-```http
-POST /users/accounts/login
-Content-Type: application/json
-```
-```json
-{
-  "email": "ahmed@example.com",
-  "password": "secret123"
-}
-```
-> Store the returned `id` and `role` in your frontend session — every subsequent call needs them as headers.
+### 2. Login
 
----
+```bash
+# Login as ADMIN
+curl -s -X POST http://localhost:8080/users/accounts/login -H "Content-Type: application/json" -d '{"email":"ahmed.admin@bugtracker.com","password":"admin1234"}'
 
-### Users
+# Login as STAFF
+curl -s -X POST http://localhost:8080/users/accounts/login -H "Content-Type: application/json" -d '{"email":"sara.staff@bugtracker.com","password":"staff1234"}'
 
-| Method | Endpoint | Required Headers | Access |
-|---|---|---|---|
-| `GET` | `/users` | `role` | ADMIN only |
-| `GET` | `/users/{id}` | `userId`, `role` | ADMIN = any user; STAFF/CUSTOMER = own profile only |
-| `PUT` | `/users/{id}` | `userId`, `role` | ADMIN = any user; STAFF/CUSTOMER = own profile only |
-| `DELETE` | `/users/{id}` | `role` | ADMIN only |
-
-PUT body — same shape as register.
-
----
-
-### Projects
-
-#### Create Project
-```http
-POST /projects/insert
-role: ADMIN
-Content-Type: application/json
-```
-```json
-{
-  "projectName": "My App",
-  "description": "A web application project",
-  "adminId": 1
-}
+# Login as CUSTOMER
+curl -s -X POST http://localhost:8080/users/accounts/login -H "Content-Type: application/json" -d '{"email":"omar.customer@bugtracker.com","password":"customer1234"}'
 ```
 
-Response:
-```json
-{
-  "success": true,
-  "message": "Project Created Successfully",
-  "data": { "projectId": 1, "projectName": "My App", ... }
-}
+### 3. Create a project (ADMIN)
+
+```bash
+curl -s -X POST http://localhost:8080/projects/insert -H "Content-Type: application/json" -H "role: ADMIN" -d '{"projectName":"E-Commerce App","description":"Online shopping platform","adminId":4}'
 ```
 
-#### Get All Projects
-```http
-GET /projects
+### 4. Create a bug (CUSTOMER)
+
+```bash
+curl -s -X POST http://localhost:8080/bugs/insert -H "Content-Type: application/json" -H "userId: 6" -d '{"title":"Checkout button unresponsive","description":"Clicking checkout does nothing on mobile","priority":"HIGH","projectName":"E-Commerce App"}'
 ```
 
-#### Get Project by ID
-```http
-GET /projects/{projectId}
+→ Admin (id 4) automatically receives an `UNREAD` notification.
+
+### 5. Check notifications (ADMIN)
+
+```bash
+curl -s http://localhost:8080/notifications/my-notifications -H "userId: 4"
 ```
 
-#### Update Project
-```http
-PUT /projects/{id}
-Content-Type: application/json
-```
-```json
-{
-  "projectName": "Updated Name",
-  "description": "Updated description",
-  "adminId": 1
-}
+### 6. Assign bug to staff (ADMIN)
+
+```bash
+curl -s -X PUT http://localhost:8080/bugs/assign -H "Content-Type: application/json" -H "userId: 4" -d '{"bugId":2,"staffId":5}'
 ```
 
-#### Delete Project
-```http
-DELETE /projects/{id}
-Content-Type: application/json
+→ Staff (id 5) automatically receives an `UNREAD` notification.
 
-"ADMIN"
-```
-> Role is sent as a raw JSON string in the body.
+### 7. Staff comment on bug
 
----
-
-### Bugs
-
-#### Create Bug — CUSTOMER
-```http
-POST /bugs/insert
-userId: 3
-Content-Type: application/json
-```
-```json
-{
-  "title": "Login page crashes on submit",
-  "description": "App crashes when clicking the login button",
-  "priority": "HIGH",
-  "ProjectId": 1
-}
-```
-> Priority values: `LOW` `MEDIUM` `HIGH` `CRITICAL`
-> Note the capital `P` in `ProjectId`.
-
-Response:
-```json
-{
-  "success": true,
-  "message": "Bug created Successfully",
-  "data": { "id": 5, "title": "...", "status": "OPEN", ... }
-}
+```bash
+curl -s -X POST http://localhost:8080/bugs/comment -H "Content-Type: application/json" -H "userId: 5" -d '{"bugId":2,"adminId":4,"comment":"Reproduced on Safari iOS. Investigating event listener issue."}'
 ```
 
-#### Assign Bug to Staff — ADMIN
-```http
-PUT /bugs/assign
-userId: 1
-Content-Type: application/json
-```
-```json
-{
-  "bugId": 5,
-  "staffId": 2
-}
+### 8. Admin message to customer
+
+```bash
+curl -s -X POST http://localhost:8080/bugs/admin-message -H "Content-Type: application/json" -H "userId: 4" -d '{"bugId":2,"customerId":6,"message":"Our team is actively working on your issue."}'
 ```
 
-#### Mark Bug as Solved — STAFF
-```http
-PUT /bugs/solve
-userId: 2
-Content-Type: application/json
-```
-```json
-{
-  "bugId": 5,
-  "customerId": 3
-}
+### 9. Solve bug (STAFF)
+
+```bash
+curl -s -X PUT http://localhost:8080/bugs/solve -H "Content-Type: application/json" -H "userId: 5" -d '{"bugId":2,"customerId":6}'
 ```
 
-#### Staff Comment (notifies admin)
-```http
-POST /bugs/comment
-userId: 2
-Content-Type: application/json
-```
-```json
-{
-  "bugId": 5,
-  "adminId": 1,
-  "comment": "I'm looking into it, seems related to session handling"
-}
+→ Customer (id 6) automatically receives an `UNREAD` notification.
+
+### 10. Check customer notifications
+
+```bash
+curl -s http://localhost:8080/notifications/my-notifications -H "userId: 6"
 ```
 
-#### Admin Message to Customer
-```http
-POST /bugs/admin-message
-userId: 1
-Content-Type: application/json
-```
-```json
-{
-  "bugId": 5,
-  "customerId": 3,
-  "message": "We've assigned a staff member to your issue"
-}
+### 11. Mark notification as read
+
+```bash
+curl -s -X PUT http://localhost:8080/notifications/read/4
 ```
 
-#### Get All Bugs
-```http
-GET /bugs
-```
+### 12. Update bug status
 
-#### Get Bug by ID
-```http
-GET /bugs/{bugId}
-userId: 1
-role: ADMIN
-```
-> Access rules: ADMIN = any bug; STAFF = only bugs assigned to them; CUSTOMER = only their own bugs.
-
-#### Update Bug
-```http
-PUT /bugs/{id}
-userId: 1
-role: ADMIN
-Content-Type: application/json
-```
-```json
-{
-  "title": "Updated title",
-  "description": "More detail added",
-  "priority": "MEDIUM",
-  "status": "IN_PROGRESS"
-}
-```
-> Status values: `OPEN` `ASSIGNED` `IN_PROGRESS` `FIXED` `SOLVED` `CLOSED`
-
-#### Delete Bug
-```http
-DELETE /bugs/{id}
-userId: 1
-role: ADMIN
-```
-
----
-
-### Notifications
-
-Notifications are created automatically by Bug-Service. The frontend only needs to read and mark them.
-
-#### Get My Notifications
-```http
-GET /notifications/my-notifications
-userId: 3
-```
-
-Response:
-```json
-[
-  {
-    "id": 12,
-    "senderId": 1,
-    "receiverId": 3,
-    "message": "We've assigned a staff member",
-    "bugId": 5,
-    "status": "UNREAD",
-    "createdAt": "2026-05-09T14:30:00"
-  }
-]
-```
-
-#### Mark Notification as Read
-```http
-PUT /notifications/read/{notificationId}
-```
-
----
-
-## Typical User Flow
-
-```
-1. Register users (choose role during registration — no role change after)
-2. Login → save { id, role } in frontend localStorage
-3. ADMIN  → Create a project
-4. CUSTOMER → Report a bug on that project
-             └─ Admin gets notified automatically
-5. ADMIN  → Assign bug to a staff member
-             └─ Staff gets notified automatically
-6. STAFF  → Solve the bug
-             └─ Customer gets notified automatically
-7. Anyone → Poll GET /notifications/my-notifications for inbox
-8. Anyone → PUT /notifications/read/{id} to dismiss
+```bash
+curl -s -X PUT http://localhost:8080/bugs/2 -H "Content-Type: application/json" -H "userId: 4" -H "role: ADMIN" -d '{"title":"Checkout button unresponsive","description":"Fixed in v2.1","priority":"HIGH","status":"CLOSED"}'
 ```
 
 ---
@@ -411,16 +205,17 @@ PUT /notifications/read/{notificationId}
 
 ```
 OPEN → ASSIGNED → IN_PROGRESS → FIXED → CLOSED
-                              ↘ SOLVED
+                             ↘ SOLVED
 ```
 
 ---
 
-## Known Issues
+## Automatic Notifications Summary
 
-| Issue | Detail |
-|---|---|
-| Login password check | `encoder.encode()` is used instead of `encoder.matches()` — login will always fail. Fix: `encoder.matches(rawPassword, storedHash)` |
-| Login returns no body | Controller return type is `void` — frontend gets no user data on login |
-| Conflicting GET routes | `/projects/{projectName}` and `/projects/{projectId}` share the same path pattern — use `GET /projects` and filter client-side |
-| No token/session system | No JWT or session — userId and role must be sent as headers on every request |
+| Trigger | Sender | Receiver | Message |
+|---|---|---|---|
+| Bug created | customer | project admin | `"New bug created"` |
+| Bug assigned | admin | staff | `"This bug has been assigned to you"` |
+| Bug solved | staff | customer | `"Bug has been solved"` |
+| Staff comment | staff | admin | the comment text |
+| Admin message | admin | customer | the message text |

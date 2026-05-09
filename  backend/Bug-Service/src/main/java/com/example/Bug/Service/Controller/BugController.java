@@ -18,8 +18,8 @@ public class BugController {
 
     //Post API to create bug
     @PostMapping("/insert")
-    public ResponseEntity<ApiResponse<Bug>>createBug(@RequestBody CreateBugRequest request, @RequestHeader("userId") Long customerId) {
-        Bug bug = bugService.createBug(request.getTitle(), request.getDescription(), request.getPriority(), request.getTitle(), customerId);
+    public ResponseEntity<ApiResponse<Bug>> createBug(@RequestBody CreateBugRequest request, @RequestHeader("userId") Long customerId) {
+        Bug bug = bugService.createBug(request.getTitle(), request.getDescription(), request.getPriority(), request.getProjectName(), customerId);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Bug created Successfully", bug)
         );
