@@ -86,7 +86,7 @@ public class UserServiceImpl implements UserService{
                 .orElseThrow(() -> new NoSuchUserExistsException("User Not Found"));
 
         if (!encoder.matches(request.getPassword(), user.getPassword())) {
-            throw new InvalidDataException("Invalid password");
+            throw new InvalidDataException("Invalid email or password");
         }
 
         return user;
